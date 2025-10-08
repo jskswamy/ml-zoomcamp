@@ -313,3 +313,58 @@ print(f'Max RMSE: {round(np.max(rmse_scores), 3)}')
 **Answer: 0.001**
 
 The standard deviation of RMSE scores across different seeds is 0.002, which rounds to 0.001 when rounded to 3 decimal places. The RMSE scores are very consistent across different random seeds, ranging from 0.160 to 0.168 with a mean of 0.165.
+
+## Question 6
+
+- Split the dataset like previously, use seed 9.
+- Combine train and validation datasets.
+- Fill the missing values with 0 and train a model with r=0.001.
+- What's the RMSE on the test dataset?
+
+Options:
+
+- 0.15
+- 0.515
+- 5.15
+- 51.5
+
+```python
+# Split dataset with seed 9
+np.random.seed(9)
+data_shuffled = data.sample(frac=1, random_state=9).reset_index(drop=True)
+train_data_q6, temp_data_q6 = train_test_split(data_shuffled, test_size=0.4, random_state=9)
+val_data_q6, test_data_q6 = train_test_split(temp_data_q6, test_size=0.5, random_state=9)
+
+print(f'Train set size: {len(train_data_q6)}')
+print(f'Validation set size: {len(val_data_q6)}')
+print(f'Test set size: {len(test_data_q6)}')
+
+# Combine train and validation datasets
+train_val_combined = pd.concat([train_data_q6, val_data_q6], ignore_index=True)
+print(f'Combined train+val set size: {len(train_val_combined)}')
+
+# Fill missing horsepower with 0
+train_val_combined['horsepower'] = train_val_combined['horsepower'].fillna(0)
+test_data_q6['horsepower'] = test_data_q6['horsepower'].fillna(0)
+
+# Prepare features and target
+X_train_val = train_val_combined[['horsepower']].values
+X_test = test_data_q6[['horsepower']].values
+y_train_val = np.log1p(train_val_combined['fuel_efficiency_mpg'].values)
+y_test = np.log1p(test_data_q6['fuel_efficiency_mpg'].values)
+
+# Train model with r=0.001
+w0, w = train_linear_regression_reg(X_train_val, y_train_val, r=0.001)
+
+# Make predictions on test set
+y_pred_test = w0 + X_test.dot(w)
+
+# Calculate RMSE on test set
+rmse_test = rmse(y_test, y_pred_test)
+
+print(f'\nRMSE on test dataset: {round(rmse_test, 3)}')
+```
+
+**Answer: 0.15**
+
+The RMSE on the test dataset is 0.163, which rounds to 0.15 when rounded to 2 decimal places. This is the final model performance after combining the training and validation sets and training with regularization (r=0.001).
