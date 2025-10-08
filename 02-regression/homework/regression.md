@@ -172,3 +172,77 @@ The results show:
 - RMSE with mean: 0.16
 
 Filling missing horsepower values with the mean gives a better (lower) RMSE score.
+
+## Question 4
+
+- Now let's train a regularized linear regression.
+- For this question, fill the NAs with 0.
+- Try different values of r from this list: [0, 0.01, 0.1, 1, 5, 10, 100].
+- Use RMSE to evaluate the model on the validation dataset.
+- Round the RMSE scores to 2 decimal digits.
+- Which r gives the best RMSE?
+
+If multiple options give the same best RMSE, select the smallest r.
+
+Options:
+
+- 0
+- 0.01
+- 1
+- 10
+- 100
+
+```python
+# Implement regularized linear regression function
+def train_linear_regression_reg(X, y, r=0.001):
+    ones = np.ones(X.shape[0])
+    X = np.column_stack([ones, X])
+    
+    XTX = X.T.dot(X)
+    XTX = XTX + r * np.eye(XTX.shape[0])
+    
+    XTX_inv = np.linalg.inv(XTX)
+    w_full = XTX_inv.dot(X.T).dot(y)
+    
+    return w_full[0], w_full[1:]
+
+# Prepare data - fill missing horsepower with 0
+train_data_reg = train_data.copy()
+val_data_reg = val_data.copy()
+
+train_data_reg['horsepower'] = train_data_reg['horsepower'].fillna(0)
+val_data_reg['horsepower'] = val_data_reg['horsepower'].fillna(0)
+
+# Prepare features and target
+X_train_reg = train_data_reg[['horsepower']].values
+X_val_reg = val_data_reg[['horsepower']].values
+y_train_reg = np.log1p(train_data_reg['fuel_efficiency_mpg'].values)
+y_val_reg = np.log1p(val_data_reg['fuel_efficiency_mpg'].values)
+
+# Test different regularization values
+r_values = [0, 0.01, 0.1, 1, 5, 10, 100]
+rmse_scores = []
+
+print('Testing different regularization values:')
+print('r\tRMSE')
+print('-' * 15)
+
+for r in r_values:
+    w0, w = train_linear_regression_reg(X_train_reg, y_train_reg, r)
+    y_pred = w0 + X_val_reg.dot(w)
+    rmse_score = rmse(y_val_reg, y_pred)
+    rmse_scores.append(rmse_score)
+    print(f'{r}\t{round(rmse_score, 2)}')
+
+# Find the best r
+best_r_idx = np.argmin(rmse_scores)
+best_r = r_values[best_r_idx]
+best_rmse = rmse_scores[best_r_idx]
+
+print(f'\nBest r: {best_r}')
+print(f'Best RMSE: {round(best_rmse, 2)}')
+```
+
+**Answer: 0**
+
+The results show that r=0 gives the best RMSE score of 0.17. All regularization values from 0 to 10 give the same RMSE (0.17), but since the question asks to select the smallest r when multiple options give the same best RMSE, the answer is 0.
