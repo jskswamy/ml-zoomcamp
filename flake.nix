@@ -38,6 +38,8 @@
           uv
           process-compose
           pandoc
+          python313Packages.nbdime
+          python313Packages.jupytext
         ];
       in {
         devShells = {
